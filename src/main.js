@@ -23,28 +23,52 @@ app.innerHTML = `
 
     <main class="dashboard-grid">
       <section class="panel">
-        <div class="panel-header">YouTube</div>
+        <div class="panel-header">
+          <span>YouTube</span>
+          <div class="panel-controls">
+            <button data-panel="youtube" data-action="back">←</button>
+            <button data-panel="youtube" data-action="refresh">↻</button>
+          </div>
+        </div>
         <div class="panel-body" id="youtube-panel">
           <div class="panel-placeholder">YouTube results will load here</div>
         </div>
       </section>
 
       <section class="panel">
-        <div class="panel-header">Reddit</div>
+        <div class="panel-header">
+          <span>Reddit</span>
+          <div class="panel-controls">
+            <button data-panel="reddit" data-action="back">←</button>
+            <button data-panel="reddit" data-action="refresh">↻</button>
+          </div>
+        </div>
         <div class="panel-body" id="reddit-panel">
           <div class="panel-placeholder">Reddit results will load here</div>
         </div>
       </section>
 
       <section class="panel">
-        <div class="panel-header">Wikipedia</div>
+        <div class="panel-header">
+          <span>Wikipedia</span>
+          <div class="panel-controls">
+            <button data-panel="wikipedia" data-action="back">←</button>
+            <button data-panel="wikipedia" data-action="refresh">↻</button>
+          </div>
+        </div>
         <div class="panel-body" id="wikipedia-panel">
           <div class="panel-placeholder">Wikipedia results will load here</div>
         </div>
       </section>
 
       <section class="panel">
-        <div class="panel-header">WhoSampled</div>
+        <div class="panel-header">
+          <span>WhoSampled</span>
+          <div class="panel-controls">
+            <button data-panel="whosampled" data-action="back">←</button>
+            <button data-panel="whosampled" data-action="refresh">↻</button>
+          </div>
+        </div>
         <div class="panel-body" id="whosampled-panel">
           <div class="panel-placeholder">WhoSampled results will load here</div>
         </div>
@@ -67,12 +91,13 @@ function buildSearchUrl(baseUrl, queryParam, query) {
   return url.toString()
 }
 
-function renderLinkCard(title, url) {
+function createWebview(url) {
   return `
-    <a class="result-link" href="${url}" target="_blank" rel="noreferrer">
-      <span>${title}</span>
-      <span class="result-url">${url}</span>
-    </a>
+    <webview
+      class="panel-webview"
+      src="${url}"
+      allowpopups
+    ></webview>
   `
 }
 
@@ -105,13 +130,34 @@ function runSearch(query) {
     trimmedQuery
   )
 
-  youtubePanel.innerHTML = renderLinkCard('Open YouTube results', youtubeUrl)
-  redditPanel.innerHTML = renderLinkCard('Open Reddit results', redditUrl)
-  wikipediaPanel.innerHTML = renderLinkCard('Open Wikipedia results', wikipediaUrl)
-  whosampledPanel.innerHTML = renderLinkCard('Open WhoSampled results', whosampledUrl)
+  youtubePanel.innerHTML = createWebview(youtubeUrl)
+  redditPanel.innerHTML = createWebview(redditUrl)
+  wikipediaPanel.innerHTML = createWebview(wikipediaUrl)
+  whosampledPanel.innerHTML = createWebview(whosampledUrl)
 }
 
 searchForm.addEventListener('submit', (event) => {
   event.preventDefault()
   runSearch(searchInput.value)
+})
+
+document.addEventListener('click', (e) => {
+  const button = e.target
+
+  if (!button.dataset.action) return
+
+  const panel = button.dataset.panel
+  const action = button.dataset.action
+
+  const webview = document.querySelector(`#${panel}-panel webview`)
+
+  if (!webview) return
+
+  if (action === 'back' && webview.canGoBack()) {
+    webview.goBack()
+  }
+
+  if (action === 'refresh') {
+    webview.reload()
+  }
 })
